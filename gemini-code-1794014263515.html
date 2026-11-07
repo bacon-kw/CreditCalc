@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kreditbuch</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+[hidden] { display: none !important; }
+
+:root {
+  --bg: #e8ecea;
+  --surface: #f6f8f7;
+  --ink: #111c17;
+  --muted: #566861;
+  --line: #c8d2ce;
+  --accent: #0d7a53;
+  --accent-ink: #f4fbf8;
+  --focus: #0d7a53;
+  --ok: #146c43;
+  --ok-bg: #d9f0e4;
+  --bad: #b42318;
+  --bad-bg: #fbe3e0;
+  --warn: #a9480a;
+  --warn-bg: #fbeAD6;
+  --panel: #12201a;
+  --panel-ink: #e9f2ed;
+  --panel-muted: #8ea99c;
+  --panel-line: #2f433a;
+  --panel-accent: #6fe0b2;
+  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1310;
+    --surface: #141d19;
+    --ink: #e5eee9;
+    --muted: #8da398;
+    --line: #26332d;
+    --accent: #4fc79b;
+    --accent-ink: #07130e;
+    --focus: #4fc79b;
+    --ok: #6fd3a6;
+    --ok-bg: #16352a;
+    --bad: #f28b82;
+    --bad-bg: #3a1c1a;
+    --warn: #f0a35e;
+    --warn-bg: #3a2a16;
+    --panel: #1a2a23;
+    --panel-ink: #e9f2ed;
+    --panel-muted: #8ea99c;
+    --panel-line: #35493f;
+    --panel-accent: #6fe0b2;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.45;
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 7vw, 46px); line-height: 1; margin: 0; letter-spacing: .01em; }
+h2 { font: 700 24px/1 var(--display); letter-spacing: .01em; margin: 0; }
+.sub { color: var(--muted); margin: 6px 0 0; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; }
+.nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.nav a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 15px; }
+.nav a[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.nav a:hover:not([aria-current="page"]) { border-color: var(--accent); }
+.cnt { font-size: 12px; min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--bg); color: var(--ink); text-align: center; font-variant-numeric: tabular-nums; }
+.nav a[aria-current="page"] .cnt { background: var(--accent-ink); color: var(--accent); }
+.cnt:empty { display: none; }
+.storage-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--line); text-transform: uppercase; font-weight: 600; color: var(--muted); }
+
+.view { display: flex; flex-direction: column; gap: 20px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 20px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+label, .lbl { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; color: var(--muted); }
+.txt, .inwrap { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--ink); }
+.txt { width: 100%; padding: 11px 12px; font: 500 16px var(--body); }
+.inwrap { display: flex; align-items: center; padding: 0 14px; }
+.inwrap:focus-within, .txt:focus { border-color: var(--focus); outline: 2px solid var(--focus); outline-offset: 1px; }
+.inwrap input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font: 600 28px/1 var(--display); letter-spacing: .01em; padding: 12px 0; outline: none; font-variant-numeric: tabular-nums; }
+.unit { color: var(--muted); font-weight: 600; padding-left: 8px; }
+.hint { font-size: 13px; color: var(--muted); min-height: 1.3em; }
+.hint.warn { color: var(--warn); }
+
+.stepper { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; gap: 8px; }
+.stepper .btn { padding: 0; font-size: 22px; line-height: 1; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 500 13px var(--body); cursor: pointer; font-variant-numeric: tabular-nums; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 14px var(--body); cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.danger { color: var(--bad); }
+.linkbtn { background: none; border: 0; color: var(--accent); font: 600 13px var(--body); padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+.ratehead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.badge { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+.badge.manual { color: var(--warn); border-color: var(--warn); }
+.twocol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 460px) { .twocol { grid-template-columns: minmax(0, 1fr); } }
+
+.photorow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.prev { width: 84px; height: 84px; border-radius: 10px; border: 1px dashed var(--line); background: var(--bg); display: grid; place-items: center; overflow: hidden; color: var(--muted); font-size: 12px; text-align: center; }
+.prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photobtns { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+
+details { border-top: 1px solid var(--line); padding-top: 14px; }
+summary { cursor: pointer; font-weight: 600; }
+.ratetable { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.ratetable div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ratetable span { font-size: 12px; color: var(--muted); }
+.ratetable input { width: 100%; min-width: 0; padding: 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 600 16px var(--body); font-variant-numeric: tabular-nums; }
+.ratetable input.edited { border-color: var(--warn); }
+.tablefoot { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+
+.slip { background: var(--panel); color: var(--panel-ink); border-radius: 10px; padding: 22px 20px 20px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.slip .lbl { color: var(--panel-muted); }
+.big { font: 700 clamp(54px, 12vw, 84px)/0.95 var(--display); letter-spacing: .005em; color: var(--panel-accent); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.due { color: var(--panel-muted); font-size: 14px; margin-top: 6px; }
+.rows { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.rows li { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+.rows .dots { flex: 1; border-bottom: 1px dotted var(--panel-line); transform: translateY(-4px); min-width: 12px; }
+.rows .v { font-weight: 600; white-space: nowrap; }
+.rows li.total { border-top: 1px solid var(--panel-line); padding-top: 12px; font-size: 17px; }
+.rows li.total .v { color: var(--panel-accent); }
+.rows li.subrow { color: var(--panel-muted); font-size: 14px; }
+.copyrow { display: flex; gap: 8px; }
+.copyrow input { flex: 1; min-width: 0; background: transparent; color: var(--panel-ink); border: 1px solid var(--panel-line); border-radius: 8px; padding: 10px 12px; font: 400 14px var(--body); }
+.copyrow button, .savebtn { background: var(--panel-accent); color: #07130e; border: 0; border-radius: 8px; padding: 0 16px; font: 600 14px var(--body); cursor: pointer; white-space: nowrap; }
+.savebtn { padding: 14px 16px; font-size: 16px; }
+.slipnote { font-size: 13px; color: var(--panel-muted); min-height: 1.3em; }
+.slipnote.err { color: #ffb4a8; }
+
+.compare { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+tbody tr.current td { background: var(--bg); font-weight: 600; }
+tbody tr:last-child td { border-bottom: 0; }
+td button { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+.strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+@media (min-width: 700px) { .strip { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.strip > div { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.strip .num { font: 700 32px/1 var(--display); letter-spacing: .01em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.strip .num.pos { color: var(--ok); }
+.strip .num.neg { color: var(--bad); }
+.strip .cap { font-size: 12px; color: var(--muted); }
+
+.alert { background: var(--bad-bg); color: var(--bad); border-radius: 8px; padding: 12px 16px; font-weight: 600; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toolbar .txt { flex: 1 1 220px; max-width: 380px; }
+.toolbar select.txt { flex: 0 0 auto; width: auto; }
+
+.list { display: flex; flex-direction: column; gap: 12px; }
+.loan { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.loan.late { border-color: var(--bad); }
+.who { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.av { width: 56px; height: 56px; border-radius: 10px; flex: 0 0 auto; overflow: hidden; padding: 0; border: 1px solid var(--line); background: var(--bg); display: grid; place-items: center; font: 700 22px var(--display); color: var(--muted); }
+button.av { cursor: zoom-in; }
+.av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.whotxt { flex: 1; min-width: 0; }
+.nm { font: 700 24px/1.05 var(--display); letter-spacing: .01em; overflow-wrap: anywhere; }
+.ph { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.pill { font-size: 12px; font-weight: 600; letter-spacing: .04em; padding: 4px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+.pill.ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+.pill.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.pill.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px 16px; margin: 0; }
+.facts div { min-width: 0; }
+.facts dt { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.facts dd { margin: 2px 0 0; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.facts .key dd { font: 700 24px/1.1 var(--display); color: var(--accent); }
+.facts .gain dd { color: var(--ok); }
+.facts .loss dd { color: var(--bad); }
+
+.when { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.note { font-size: 14px; background: var(--bg); border-radius: 8px; padding: 8px 12px; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.editbox { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border-top: 1px solid var(--line); padding-top: 14px; }
+.editbox .wide, .editbox .actions { grid-column: 1 / -1; }
+@media (max-width: 460px) { .editbox { grid-template-columns: minmax(0, 1fr); } }
+
+.empty { border: 1px dashed var(--line); border-radius: 10px; padding: 28px 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; color: var(--muted); }
+.empty strong { color: var(--ink); font: 700 22px/1.1 var(--display); }
+.empty p { margin: 0; max-width: 52ch; }
+
+.paybar { height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; }
+.paybar span { display: block; height: 100%; background: var(--accent); }
+.paybar.late span { background: var(--bad); }
+.paylabel { display: flex; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.paylabel.late { color: var(--bad); font-weight: 600; }
+
+.detail { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 18px; }
+.detail th, .detail td { padding: 7px 10px; font-size: 14px; }
+.st-paid { color: var(--ok); font-weight: 600; }
+.st-part { color: var(--warn); font-weight: 600; }
+.st-late { color: var(--bad); font-weight: 600; }
+.xbtn { background: none; border: 0; color: var(--bad); font: 600 13px var(--body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 0; }
+.planbox { display: flex; flex-direction: column; gap: 8px; }
+.plan { max-height: 190px; overflow-y: auto; padding-right: 4px; }
+
+.toastwrap { position: fixed; left: 0; right: 0; bottom: 0; padding: 16px; display: flex; justify-content: center; pointer-events: none; z-index: 20; }
+.toast { background: var(--panel); color: var(--panel-ink); padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; max-width: 480px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+
+.lb { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.82); display: grid; place-items: center; padding: 16px; cursor: zoom-out; }
+.lb img { max-width: 100%; max-height: 100%; border-radius: 8px; display: block; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <h1>Kreditbuch</h1>
+        <span id="storage-status" class="storage-tag">Lokal</span>
+      </div>
+      <p class="sub">Kredite berechnen, verwalten und synchronisieren.</p>
+    </div>
+    <nav class="nav" aria-label="Bereiche">
+      <a href="#uebersicht" data-v="uebersicht">Übersicht <span class="cnt" id="cnt-act"></span></a>
+      <a href="#neu" data-v="neu">Neuer Kredit</a>
+      <a href="#archiv" data-v="archiv">Archiv <span class="cnt" id="cnt-arc"></span></a>
+    </nav>
+  </header>
+
+  <!-- Übersicht -->
+  <section class="view" id="v-uebersicht" aria-label="Aktuelle Kredite">
+    <div class="strip" id="strip-act"></div>
+    <div id="alert" class="alert" hidden></div>
+    <div class="toolbar">
+      <input class="txt" id="q-act" type="search" placeholder="Name oder Telefonnummer suchen" autocomplete="off">
+      <select class="txt" id="sort-act" aria-label="Sortierung">
+        <option value="due">Nach Fälligkeit</option>
+        <option value="amount">Nach Betrag</option>
+        <option value="name">Nach Name</option>
+      </select>
+    </div>
+    <div class="list" id="list-act"></div>
+  </section>
+
+  <!-- Neuer Kredit -->
+  <section class="view" id="v-neu" aria-label="Neuer Kredit" hidden>
+    <div class="grid">
+      <div class="col">
+        <div class="card">
+          <h2>Kreditnehmer</h2>
+          <div class="field">
+            <label for="name">Name</label>
+            <input class="txt" id="name" type="text" list="names" autocomplete="off" placeholder="Vor- und Nachname">
+            <div class="hint" id="knownhint"></div>
+            <datalist id="names"></datalist>
+          </div>
+          <div class="field">
+            <label for="phone">Telefonnummer</label>
+            <input class="txt" id="phone" type="text" inputmode="tel" autocomplete="off" placeholder="z. B. 555-0142">
+          </div>
+          <div class="field" id="photofield">
+            <span class="lbl">Foto</span>
+            <div class="photorow">
+              <div class="prev" id="prev"><span>Kein Foto</span></div>
+              <div class="photobtns">
+                <button class="btn" type="button" id="pickphoto">Foto wählen</button>
+                <button class="linkbtn" type="button" id="clearphoto" hidden>Foto entfernen</button>
+              </div>
+            </div>
+            <input type="file" id="newphoto" accept="image/*" hidden>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Konditionen</h2>
+          <div class="field">
+            <label for="amount">Kreditsumme</label>
+            <div class="inwrap"><input id="amount" type="text" inputmode="numeric" autocomplete="off" value="50.000"><span class="unit">$</span></div>
+          </div>
+          <div class="field">
+            <label for="weeks">Laufzeit</label>
+            <div class="stepper">
+              <button class="btn" type="button" id="wminus">&minus;</button>
+              <div class="inwrap"><input id="weeks" type="text" inputmode="numeric" autocomplete="off" value="4"><span class="unit">Wochen</span></div>
+              <button class="btn" type="button" id="wplus">+</button>
+            </div>
+            <div class="chips" id="wchips"></div>
+            <div class="hint">Ab 4 Wochen gilt der Höchstsatz von 20 %.</div>
+          </div>
+          <div class="field">
+            <label for="inst">Raten</label>
+            <div class="stepper">
+              <button class="btn" type="button" id="iminus">&minus;</button>
+              <div class="inwrap"><input id="inst" type="text" inputmode="numeric" autocomplete="off" value="1"><span class="unit">Raten</span></div>
+              <button class="btn" type="button" id="iplus">+</button>
+            </div>
+            <div class="chips" id="ichips"></div>
+            <div class="hint" id="insthint"></div>
+          </div>
+          <div class="field">
+            <label for="down">Anzahlung</label>
+            <div class="inwrap"><input id="down" type="text" inputmode="numeric" autocomplete="off" value="0"><span class="unit">$</span></div>
+            <div class="chips" id="chips">
+              <button class="chip" type="button" data-p="0">Keine</button>
+              <button class="chip" type="button" data-p="10">10 %</button>
+              <button class="chip" type="button" data-p="20">20 %</button>
+              <button class="chip" type="button" data-p="25">25 %</button>
+              <button class="chip" type="button" data-p="50">50 %</button>
+            </div>
+            <div class="hint" id="downhint"></div>
+          </div>
+          <div class="field">
+            <div class="ratehead">
+              <label for="rate">Zinssatz für diesen Kredit</label>
+              <span class="badge" id="badge">automatisch</span>
+            </div>
+            <div class="inwrap"><input id="rate" type="text" inputmode="decimal" autocomplete="off" value="20"><span class="unit">%</span></div>
+            <div class="hint" id="ratehint"></div>
+            <div><button class="linkbtn" id="resetrate" type="button" hidden>Zurück zum Satz der Laufzeit</button></div>
+          </div>
+          <div class="twocol">
+            <div class="field">
+              <label for="start">Auszahlung am</label>
+              <input class="txt" id="start" type="date">
+            </div>
+            <div class="field">
+              <label for="note">Notiz</label>
+              <input class="txt" id="note" type="text" autocomplete="off" placeholder="optional">
+            </div>
+          </div>
+          <details>
+            <summary>Zinstabelle anpassen</summary>
+            <div class="ratetable" id="ratetable"></div>
+            <div class="tablefoot">
+              <span class="hint">Standard: 10 %, 14 %, 17 % und 20 %. Mehr als 20 % sind nicht möglich.</span>
+              <div><button class="linkbtn" id="resettable" type="button">Standardwerte wiederherstellen</button></div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="col">
+        <section class="slip" aria-live="polite" aria-label="Ergebnis">
+          <div>
+            <div class="lbl">Rückzahlung</div>
+            <div class="big" id="repay">60.000 $</div>
+            <div class="due" id="due"></div>
+          </div>
+          <ul class="rows" id="rows"></ul>
+          <div class="planbox"><span class="lbl">Zahlungsplan</span><ul class="rows plan" id="plan"></ul></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span class="lbl">Zeile zum Kopieren</span>
+            <div class="copyrow">
+              <input id="line" type="text" readonly>
+              <button id="copy" type="button">Kopieren</button>
+            </div>
+          </div>
+          <button class="savebtn" id="save" type="button">Kredit speichern</button>
+          <div class="slipnote" id="slipnote"></div>
+        </section>
+      </div>
+    </div>
+
+    <section class="compare">
+      <h2>Laufzeiten im Vergleich</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Laufzeit</th><th>Zins</th><th>Zinsbetrag</th><th>Rückzahlung</th></tr></thead>
+          <tbody id="cmp"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <!-- Archiv -->
+  <section class="view" id="v-archiv" aria-label="Archiv" hidden>
+    <div class="strip" id="strip-arc"></div>
+    <div class="toolbar">
+      <input class="txt" id="q-arc" type="search" placeholder="Name oder Telefonnummer suchen" autocomplete="off">
+      <div class="chips" id="arcfilter" role="group">
+        <button class="chip" type="button" data-f="all" aria-pressed="true">Alle</button>
+        <button class="chip" type="button" data-f="repaid" aria-pressed="false">Zurückgezahlt</button>
+        <button class="chip" type="button" data-f="defaulted" aria-pressed="false">Ausgefallen</button>
+      </div>
+    </div>
+    <div class="list" id="list-arc"></div>
+  </section>
+</div>
+
+<input type="file" id="editphoto" accept="image/*" hidden>
+<div class="lb" id="lb" hidden><img id="lbimg" alt=""></div>
+<div class="toastwrap"><div class="toast" id="toast" role="status" hidden></div></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ==========================================================
+     DATENBANK & SPEICHER-ADAPTER
+     Hier bei Bedarf für Cloud-Hosting Werte eintragen!
+     ========================================================== */
+  var CLOUD_CONFIG = {
+    enabled: false,           // Auf true setzen für Vercel + Supabase
+    supabaseUrl: '',          // z.B. 'https://xyzcompany.supabase.co'
+    supabaseKey: ''           // Anonymes Public API Key von Supabase
+  };
+
+  var StorageAdapter = {
+    isCloud: function() {
+      return CLOUD_CONFIG.enabled && CLOUD_CONFIG.supabaseUrl && CLOUD_CONFIG.supabaseKey;
+    },
+    headers: function() {
+      return {
+        'apikey': CLOUD_CONFIG.supabaseKey,
+        'Authorization': 'Bearer ' + CLOUD_CONFIG.supabaseKey,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      };
+    },
+    getLoans: async function() {
+      if (this.isCloud()) {
+        try {
+          var res = await fetch(CLOUD_CONFIG.supabaseUrl + '/rest/v1/loans?select=*', {
+            headers: this.headers()
+          });
+          if (!res.ok) throw new Error();
+          var rows = await res.json();
+          return rows.map(function(r) { return { id: r.id, d: r.data }; });
+        } catch(e) {
+          toast('Cloud-Verbindungsfehler. Fallback auf lokalen Speicher.');
+        }
+      }
+      try { return JSON.parse(localStorage.getItem('kreditbuch_loans') || '[]'); } catch(e) { return []; }
+    },
+    saveLoan: async function(item) {
+      if (this.isCloud()) {
+        try {
+          var res = await fetch(CLOUD_CONFIG.supabaseUrl + '/rest/v1/loans', {
+            method: 'POST',
+            headers: this.headers(),
+            body: JSON.stringify({ id: item.id, data: item.d })
+          });
+          if (!res.ok) throw new Error();
+          return true;
+        } catch(e) {
+          toast('Fehler beim Speichern in Cloud-DB.');
+          return false;
+        }
+      }
+      var list = JSON.parse(localStorage.getItem('kreditbuch_loans') || '[]');
+      list.push(item);
+      localStorage.setItem('kreditbuch_loans', JSON.stringify(list));
+      return true;
+    },
+    updateLoan: async function(id, dataObj) {
+      if (this.isCloud()) {
+        try {
+          var res = await fetch(CLOUD_CONFIG.supabaseUrl + '/rest/v1/loans?id=eq.' + id, {
+            method: 'PATCH',
+            headers: this.headers(),
+            body: JSON.stringify({ data: dataObj })
+          });
+          if (!res.ok) throw new Error();
+          return true;
+        } catch(e) {
+          toast('Fehler beim Aktualisieren in DB.');
+          return false;
+        }
+      }
+      var list = JSON.parse(localStorage.getItem('kreditbuch_loans') || '[]');
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].id === id) { list[i].d = dataObj; break; }
+      }
+      localStorage.setItem('kreditbuch_loans', JSON.stringify(list));
+      return true;
+    },
+    deleteLoan: async function(id) {
+      if (this.isCloud()) {
+        try {
+          await fetch(CLOUD_CONFIG.supabaseUrl + '/rest/v1/loans?id=eq.' + id, {
+            method: 'DELETE',
+            headers: this.headers()
+          });
+          return true;
+        } catch(e) {
+          toast('Fehler beim Löschen in DB.');
+          return false;
+        }
+      }
+      var list = JSON.parse(localStorage.getItem('kreditbuch_loans') || '[]');
+      list = list.filter(function(x) { return x.id !== id; });
+      localStorage.setItem('kreditbuch_loans', JSON.stringify(list));
+      return true;
+    },
+    getRates: function() {
+      try {
+        var r = JSON.parse(localStorage.getItem('kreditbuch_rates'));
+        return Array.isArray(r) && r.length === 4 ? r : [10, 14, 17, 20];
+      } catch(e) { return [10, 14, 17, 20]; }
+    },
+    setRates: function(rates) {
+      try { localStorage.setItem('kreditbuch_rates', JSON.stringify(rates)); } catch(e) {}
+    }
+  };
+
+  /* ==========================================================
+     ANWENDUNGSLOGIK
+     ========================================================== */
+  var CAP = 20;
+  var DEF = [10, 14, 17, 20];
+  var $ = function (id) { return document.getElementById(id); };
+
+  var st = { amount: 50000, down: 0, weeks: 4, inst: 1, override: null, rates: StorageAdapter.getRates(), start: todayStr() };
+  var loans = [];
+  var pending = { dataUrl: null };
+  var view = { arcFilter: 'all', edit: null, pay: null, open: {}, confirmDel: null };
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function dstr(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function todayStr() { return dstr(new Date()); }
+  function validDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(String(s)); }
+  function parseDate(s) { var p = String(s).split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function addDays(s, n) { var d = parseDate(s); d.setDate(d.getDate() + n); return dstr(d); }
+  function fmtDate(s) { if (!validDate(s)) return '–'; var p = s.split('-'); return p[2] + '.' + p[1] + '.' + p[0]; }
+  function daysBetween(a, b) { return Math.round((parseDate(b) - parseDate(a)) / 864e5); }
+  function money(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function usd(n) { return money(n) + ' $'; }
+  function pct(v) { return (Math.round(v * 100) / 100).toString().replace('.', ','); }
+  function parseMoney(s) { var d = String(s).replace(/\D/g, ''); return d ? parseInt(d, 10) : 0; }
+  function parsePct(s) {
+    var t = String(s).replace(/[^\d,.]/g, '').replace(',', '.');
+    var n = parseFloat(t); return isFinite(n) ? n : null;
+  }
+  function wk(n) { return n + (n === 1 ? ' Woche' : ' Wochen'); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function active(el) { return document.activeElement === el; }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function initials(n) {
+    return String(n || '?').trim().split(/\s+/).slice(0, 2).map(function(x) { return x.charAt(0).toUpperCase(); }).join('') || '?';
+  }
+
+  var toastT;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastT);
+    toastT = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+
+  function tableRate(w) { return clamp(st.rates[Math.min(Math.max(w, 1), 4) - 1], 0, CAP); }
+  function currentRate() { return st.override !== null ? st.override : tableRate(st.weeks); }
+  function calc(rate, weeks) {
+    var amount = st.amount;
+    var down = Math.min(st.down, amount);
+    var fin = amount - down;
+    var interest = Math.round(fin * rate / 100);
+    return { amount: amount, down: down, fin: fin, interest: interest, repay: fin + interest, rate: rate, weeks: weeks };
+  }
+
+  var CHIP_WEEKS = [1, 2, 3, 4, 6, 8, 12];
+  var CMP_WEEKS = [1, 2, 3, 4, 5, 6, 8, 12];
+
+  function renderCalc() {
+    var r = calc(currentRate(), st.weeks);
+    $('wchips').innerHTML = CHIP_WEEKS.map(function (w) {
+      return '<button class="chip" type="button" data-w="' + w + '" aria-pressed="' + (w === st.weeks) + '">' + w + ' Wo. &middot; ' + pct(tableRate(w)) + ' %</button>';
+    }).join('');
+
+    if (!active($('weeks'))) $('weeks').value = String(st.weeks);
+    if (!active($('rate'))) $('rate').value = pct(r.rate);
+    $('badge').textContent = st.override !== null ? 'manuell' : 'automatisch';
+    $('badge').className = 'badge' + (st.override !== null ? ' manual' : '');
+    $('resetrate').hidden = st.override === null;
+
+    var over = st.down > st.amount;
+    $('downhint').textContent = over ? 'Die Anzahlung ist höher als die Kreditsumme. Gerechnet wird mit ' + usd(r.down) + '.' : (r.down > 0 ? 'Verzinst werden ' + usd(r.fin) + '.' : '');
+    $('downhint').className = 'hint' + (over ? ' warn' : '');
+
+    var due = addDays(st.start, st.weeks * 7);
+    $('repay').innerHTML = usd(r.repay);
+    $('due').textContent = 'Fällig am ' + fmtDate(due) + ' (' + wk(st.weeks) + ', ' + (st.weeks * 7) + ' Tage)';
+
+    var rows = [['Kreditsumme', usd(r.amount), '']];
+    if (r.down > 0) {
+      rows.push(['Anzahlung', '− ' + usd(r.down), '']);
+      rows.push(['Finanzierter Betrag', usd(r.fin), '']);
+    }
+    rows.push(['Zins (' + pct(r.rate) + ' %)', '+ ' + usd(r.interest), '']);
+    rows.push(['Rückzahlung', usd(r.repay), 'total']);
+    if (r.down > 0) rows.push(['Gesamt inklusive Anzahlung', usd(r.repay + r.down), 'subrow']);
+    $('rows').innerHTML = rows.map(function (x) {
+      return '<li class="' + x[2] + '"><span>' + x[0] + '</span><span class="dots"></span><span class="v">' + x[1] + '</span></li>';
+    }).join('');
+
+    for (var j = 0; j < 4; j++) {
+      var inp = $('rt' + j);
+      if (inp) {
+        inp.className = st.rates[j] !== DEF[j] ? 'edited' : '';
+        if (!active(inp)) inp.value = pct(st.rates[j]);
+      }
+    }
+
+    var html = '';
+    CMP_WEEKS.forEach(function (w) {
+      var c = calc(tableRate(w), w);
+      html += '<tr class="' + (w === st.weeks ? 'current' : '') + '"><td><button type="button" data-w="' + w + '">' + wk(w) + '</button></td><td>' + pct(c.rate) + ' %</td><td>' + usd(c.interest) + '</td><td>' + usd(c.repay) + '</td></tr>';
+    });
+    $('cmp').innerHTML = html;
+    renderInst(r, due);
+  }
+
+  function setWeeks(w) {
+    st.weeks = clamp(Math.round(w) || 1, 1, 520);
+    st.override = null;
+    $('ratehint').textContent = '';
+    renderCalc();
+  }
+
+  (function () {
+    var rt = $('ratetable');
+    var labels = ['1 Woche', '2 Wochen', '3 Wochen', '4+ Wochen'];
+    for (var i = 0; i < 4; i++) {
+      var d = document.createElement('div');
+      d.innerHTML = '<span>' + labels[i] + ' (%)</span><input id="rt' + i + '" type="text" inputmode="decimal" autocomplete="off">';
+      rt.appendChild(d);
+    }
+    Array.prototype.forEach.call(rt.querySelectorAll('input'), function (inp, idx) {
+      inp.addEventListener('input', function () {
+        var p = parsePct(inp.value);
+        if (p === null) return;
+        st.rates[idx] = clamp(p, 0, CAP);
+        renderCalc();
+        StorageAdapter.setRates(st.rates);
+      });
+      inp.addEventListener('blur', renderCalc);
+    });
+  })();
+
+  $('resettable').addEventListener('click', function () {
+    st.rates = DEF.slice(); st.override = null;
+    renderCalc(); StorageAdapter.setRates(st.rates);
+  });
+
+  $('amount').addEventListener('input', function () { st.amount = parseMoney($('amount').value); renderCalc(); });
+  $('amount').addEventListener('blur', function () { $('amount').value = money(st.amount); });
+  $('down').addEventListener('input', function () { st.down = parseMoney($('down').value); renderCalc(); });
+  $('down').addEventListener('blur', function () { $('down').value = money(st.down); });
+  $('weeks').addEventListener('input', function () {
+    var n = parseInt(String($('weeks').value).replace(/\D/g, ''), 10);
+    if (!n) return;
+    st.weeks = clamp(n, 1, 520); st.override = null; renderCalc();
+  });
+  $('weeks').addEventListener('blur', function () { $('weeks').value = String(st.weeks); });
+  $('wminus').addEventListener('click', function () { setWeeks(st.weeks - 1); });
+  $('wplus').addEventListener('click', function () { setWeeks(st.weeks + 1); });
+  $('wchips').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-w]'); if (b) setWeeks(Number(b.dataset.w));
+  });
+  $('inst').addEventListener('input', function () {
+    var n = parseInt(String($('inst').value).replace(/\D/g, ''), 10);
+    if (!n) return;
+    st.inst = n; renderCalc();
+  });
+  $('inst').addEventListener('blur', function () { $('inst').value = String(st.inst); });
+  $('iminus').addEventListener('click', function () { st.inst = Math.max(1, st.inst - 1); renderCalc(); });
+  $('iplus').addEventListener('click', function () { st.inst += 1; renderCalc(); });
+  $('ichips').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-i]'); if (b) { st.inst = Number(b.dataset.i); renderCalc(); }
+  });
+  $('cmp').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-w]'); if (b) setWeeks(Number(b.dataset.w));
+  });
+  $('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-p]'); if (!b) return;
+    st.down = Math.round(st.amount * Number(b.dataset.p) / 100);
+    $('down').value = money(st.down);
+    renderCalc();
+  });
+  $('rate').addEventListener('input', function () {
+    var p = parsePct($('rate').value);
+    if (p !== null && p > CAP) { p = CAP; $('ratehint').textContent = 'Der Zinssatz ist auf 20 % begrenzt.'; }
+    else $('ratehint').textContent = '';
+    st.override = p; renderCalc();
+  });
+  $('rate').addEventListener('blur', function () { $('rate').value = pct(currentRate()); renderCalc(); });
+  $('resetrate').addEventListener('click', function () {
+    st.override = null; $('ratehint').textContent = '';
+    $('rate').value = pct(currentRate()); renderCalc();
+  });
+  $('start').value = st.start;
+  $('start').addEventListener('input', function () {
+    if (validDate($('start').value)) { st.start = $('start').value; renderCalc(); }
+  });
+  $('name').addEventListener('input', function () { onNameInput(); renderCalc(); });
+
+  $('copy').addEventListener('click', function () {
+    navigator.clipboard.writeText($('line').value).then(function() { toast('Kopiert.'); }, function() {
+      $('line').focus(); $('line').select(); toast('Zeile markiert.');
+    });
+  });
+
+  function history(name) {
+    var k = String(name || '').trim().toLowerCase();
+    if (!k) return null;
+    var m = loans.filter(function (l) { return String(l.d.name || '').trim().toLowerCase() === k; });
+    if (!m.length) return null;
+    var h = { n: m.length, a: 0, p: 0, x: 0, last: null };
+    m.forEach(function (l) {
+      if (l.d.status === 'active') h.a++; else if (l.d.status === 'repaid') h.p++; else if (l.d.status === 'defaulted') h.x++;
+    });
+    m.sort(function (a, b) { return String(b.d.createdAt || '').localeCompare(String(a.d.createdAt || '')); });
+    h.last = m[0].d;
+    return h;
+  }
+  function onNameInput() {
+    var h = history($('name').value);
+    var el = $('knownhint');
+    if (!h) { el.textContent = ''; el.className = 'hint'; return; }
+    var parts = [];
+    if (h.a) parts.push(h.a + ' aktiv');
+    if (h.p) parts.push(h.p + ' zurückgezahlt');
+    if (h.x) parts.push(h.x + ' ausgefallen');
+    el.textContent = 'Bereits bekannt: ' + h.n + (h.n === 1 ? ' Kredit' : ' Kredite') + ' (' + parts.join(', ') + ')';
+    el.className = 'hint' + (h.x ? ' warn' : '');
+    if (!$('phone').value.trim() && h.last.phone) $('phone').value = h.last.phone;
+  }
+  function renderNames() {
+    var seen = {}, out = '';
+    loans.forEach(function (l) {
+      var n = String(l.d.name || '').trim();
+      if (n && !seen[n.toLowerCase()]) { seen[n.toLowerCase()] = 1; out += '<option value="' + esc(n) + '"></option>'; }
+    });
+    $('names').innerHTML = out;
+  }
+
+  function shrinkToBase64(file) {
+    return new Promise(function (res) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+          var w = img.naturalWidth, h = img.naturalHeight;
+          var s = Math.min(1, 300 / Math.max(w, h));
+          var c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
+          var x = c.getContext('2d');
+          x.drawImage(img, 0, 0, c.width, c.height);
+          res(c.toDataURL('image/jpeg', 0.8));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderPrev() {
+    var box = $('prev');
+    box.innerHTML = pending.dataUrl ? '<img src="' + esc(pending.dataUrl) + '" alt="Vorschau">' : '<span>Kein Foto</span>';
+    $('clearphoto').hidden = !pending.dataUrl;
+  }
+  $('pickphoto').addEventListener('click', function () { $('newphoto').click(); });
+  $('newphoto').addEventListener('change', function () {
+    var f = $('newphoto').files && $('newphoto').files[0];
+    $('newphoto').value = '';
+    if (!f) return;
+    shrinkToBase64(f).then(function (b64) {
+      pending.dataUrl = b64;
+      renderPrev();
+    });
+  });
+  $('clearphoto').addEventListener('click', function () {
+    pending.dataUrl = null; renderPrev();
+  });
+
+  function setSlip(msg, isErr) { $('slipnote').textContent = msg || ''; $('slipnote').className = 'slipnote' + (isErr ? ' err' : ''); }
+  
+  async function saveLoan() {
+    var name = $('name').value.trim();
+    if (!name) { setSlip('Bitte einen Namen eintragen.', true); $('name').focus(); return; }
+    if (st.amount <= 0) { setSlip('Die Kreditsumme muss größer als 0 sein.', true); $('amount').focus(); return; }
+    
+    setSlip('');
+    var r = calc(currentRate(), st.weeks);
+    var weeks = st.weeks, start = st.start, inst = Math.min(st.inst, weeks * 7, 120);
+    var doc = {
+      name: name, phone: $('phone').value.trim(), photo: pending.dataUrl || null,
+      amount: r.amount, down: r.down, fin: r.fin, weeks: weeks, rate: r.rate, manualRate: st.override !== null,
+      interest: r.interest, repay: r.repay, start: start, due: addDays(start, weeks * 7),
+      installments: inst, payments: [], note: $('note').value.trim(), status: 'active', closedAt: null, createdAt: new Date().toISOString()
+    };
+    
+    var newObj = { id: 'loan_' + Date.now(), d: doc };
+    var ok = await StorageAdapter.saveLoan(newObj);
+    if (!ok) return;
+
+    loans.push(newObj);
+    $('name').value = ''; $('phone').value = ''; $('note').value = ''; $('knownhint').textContent = '';
+    st.down = 0; $('down').value = '0'; st.override = null; st.start = todayStr(); $('start').value = st.start;
+    pending.dataUrl = null;
+    renderPrev(); renderCalc(); renderLists();
+    toast('Kredit gespeichert.');
+    location.hash = '#uebersicht';
+  }
+  $('save').addEventListener('click', saveLoan);
+
+  function schedule(start, weeks, n, repay) {
+    var days = Math.max(1, weeks * 7);
+    n = clamp(Math.round(n) || 1, 1, Math.min(days, 120));
+    var base = Math.floor(repay / n), rem = repay - base * n, out = [];
+    for (var k = 1; k <= n; k++) out.push({ due: addDays(start, Math.round(k * days / n)), amt: base + (k === n ? rem : 0) });
+    return out;
+  }
+  function renderInst(r, due) {
+    var days = st.weeks * 7;
+    st.inst = clamp(st.inst, 1, Math.min(days, 120));
+    if (!active($('inst'))) $('inst').value = String(st.inst);
+    var seen = {}, chips = '';
+    [['Einmalig', 1], ['Wöchentlich', st.weeks], ['Alle 2 Wochen', Math.max(1, Math.ceil(st.weeks / 2))]].forEach(function (x) {
+      if (seen[x[1]]) return;
+      seen[x[1]] = 1;
+      chips += '<button class="chip" type="button" data-i="' + x[1] + '" aria-pressed="' + (x[1] === st.inst) + '">' + x[0] + '</button>';
+    });
+    $('ichips').innerHTML = chips;
+    var sch = schedule(st.start, st.weeks, st.inst, r.repay);
+    var every = Math.round(days / st.inst * 10) / 10;
+    $('insthint').textContent = st.inst > 1 ? st.inst + ' Raten à ' + usd(sch[0].amt) + ', etwa alle ' + String(every).replace('.', ',') + ' Tage.' : 'Die ganze Summe ist am Ende fällig.';
+    $('plan').innerHTML = sch.map(function (x, i) {
+      return '<li><span>' + (i + 1) + '. Rate &middot; ' + fmtDate(x.due) + '</span><span class="dots"></span><span class="v">' + usd(x.amt) + '</span></li>';
+    }).join('');
+    var nm = $('name').value.trim();
+    var line = (nm ? nm + ' · ' : '') + 'Kredit ' + usd(r.amount);
+    if (r.down > 0) line += ' · Anzahlung ' + usd(r.down);
+    line += ' · ' + wk(st.weeks) + ' · ' + pct(r.rate) + ' % Zins · Rückzahlung ' + usd(r.repay);
+    line += st.inst > 1 ? ' in ' + st.inst + ' Raten à ' + usd(sch[0].amt) + ' · letzte Rate ' + fmtDate(due) : ' · fällig ' + fmtDate(due);
+    $('line').value = line.replace(/ /g, ' ');
+  }
+
+  function paidOf(d) {
+    if (Array.isArray(d.payments)) return d.payments.reduce(function (a, p) { return a + (Number(p.amount) || 0); }, 0);
+    return d.status === 'repaid' ? (Number(d.repay) || 0) : 0;
+  }
+  function info(d) {
+    var today = todayStr();
+    var sch = schedule(d.start, d.weeks, d.installments || 1, d.repay);
+    var paid = paidOf(d), open = Math.max(0, d.repay - paid);
+    var cum = 0, dueBefore = 0, next = null, firstLate = null;
+    var rows = sch.map(function (x) {
+      var s0 = cum, e0 = cum + x.amt; cum = e0;
+      var state = paid >= e0 ? 'paid' : (paid > s0 ? 'partial' : 'open');
+      var late = state !== 'paid' && x.due < today;
+      if (x.due < today) dueBefore += x.amt;
+      if (state !== 'paid') {
+        if (!next) next = { due: x.due, amt: e0 - Math.max(paid, s0) };
+        if (late && !firstLate) firstLate = x.due;
+      }
+      return { due: x.due, amt: x.amt, state: state, late: late, got: Math.min(x.amt, Math.max(0, paid - s0)) };
+    });
+    return { sch: rows, paid: paid, open: open, behind: Math.max(0, dueBefore - paid), next: next, firstLate: firstLate, n: sch.length };
+  }
+  function statusInfo(d, inf) {
+    if (d.status === 'repaid') return { pill: 'Zurückgezahlt', cls: 'ok', late: false };
+    if (d.status === 'defaulted') return { pill: 'Ausgefallen', cls: 'bad', late: false };
+    if (inf.open <= 0) return { pill: 'Vollständig bezahlt', cls: 'ok', late: false };
+    if (inf.behind > 0) return { pill: 'Im Rückstand', cls: 'bad', late: true };
+    if (inf.next && inf.next.due === todayStr()) return { pill: 'Heute fällig', cls: 'warn', late: false };
+    return { pill: 'Aktiv', cls: '', late: false };
+  }
+  function nextText(inf) {
+    if (inf.open <= 0) return 'Alles bezahlt';
+    if (inf.behind > 0) return 'Rückstand ' + usd(inf.behind) + ' seit ' + fmtDate(inf.firstLate);
+    var diff = daysBetween(todayStr(), inf.next.due);
+    var when = diff === 0 ? 'heute' : diff === 1 ? 'morgen' : 'in ' + diff + ' Tagen';
+    return 'Nächste Zahlung: ' + usd(inf.next.amt) + ' am ' + fmtDate(inf.next.due) + ' (' + when + ')';
+  }
+  function stateLabel(x) {
+    if (x.state === 'paid') return '<span class="st-paid">Bezahlt</span>';
+    if (x.state === 'partial') return '<span class="' + (x.late ? 'st-late' : 'st-part') + '">' + usd(x.got) + ' gezahlt</span>';
+    return x.late ? '<span class="st-late">Überfällig</span>' : 'Offen';
+  }
+
+  function avatar(d) {
+    if (d.photo) return '<button type="button" class="av" data-act="zoom" data-src="' + esc(d.photo) + '"><img src="' + esc(d.photo) + '" alt=""></button>';
+    return '<span class="av">' + esc(initials(d.name)) + '</span>';
+  }
+
+  function detailHTML(l, inf, isAct) {
+    var d = l.d;
+    var h = '<div class="detail"><div><div class="lbl">Zahlungsplan</div><div class="scroll"><table><thead><tr><th>Rate</th><th>Fällig</th><th>Betrag</th><th>Status</th></tr></thead><tbody>';
+    inf.sch.forEach(function (x, i) {
+      h += '<tr><td>' + (i + 1) + '</td><td>' + fmtDate(x.due) + '</td><td>' + usd(x.amt) + '</td><td>' + stateLabel(x) + '</td></tr>';
+    });
+    h += '</tbody></table></div></div><div><div class="lbl">Zahlungen</div>';
+    var pays = (Array.isArray(d.payments) ? d.payments : []).map(function (p, i) { return { i: i, date: p.date, amount: p.amount }; });
+    pays.sort(function (a, b) { return String(a.date).localeCompare(String(b.date)) || a.i - b.i; });
+    if (!pays.length) h += '<p class="hint">Noch keine Zahlung eingetragen.</p>';
+    else {
+      h += '<div class="scroll"><table><thead><tr><th>Datum</th><th>Betrag</th>' + (isAct ? '<th></th>' : '') + '</tr></thead><tbody>';
+      pays.forEach(function (p) {
+        h += '<tr><td>' + fmtDate(p.date) + '</td><td>' + usd(p.amount) + '</td>' + (isAct ? '<td><button class="xbtn" type="button" data-act="delpay" data-id="' + l.id + '" data-i="' + p.i + '">Entfernen</button></td>' : '') + '</tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+    return h + '</div></div>';
+  }
+
+  function loanHTML(l) {
+    var d = l.d, id = l.id, isAct = d.status === 'active';
+    var inf = info(d), si = statusInfo(d, inf);
+    var n = inf.n, base = inf.sch.length ? inf.sch[0].amt : 0, lastAmt = inf.sch.length ? inf.sch[inf.sch.length - 1].amt : 0;
+    var h = '<article class="loan' + (si.late ? ' late' : '') + '" data-id="' + id + '">';
+    h += '<div class="who">' + avatar(d) + '<div class="whotxt"><div class="nm">' + esc(d.name) + '</div><div class="ph">' + (d.phone ? esc(d.phone) : 'Keine Telefonnummer') + '</div></div><span class="pill ' + si.cls + '">' + si.pill + '</span></div>';
+    h += '<dl class="facts">';
+    h += '<div><dt>Kredit</dt><dd>' + usd(d.amount) + '</dd></div>';
+    if (d.down > 0) h += '<div><dt>Anzahlung</dt><dd>' + usd(d.down) + '</dd></div>';
+    h += '<div><dt>Laufzeit</dt><dd>' + wk(d.weeks) + ' &middot; ' + pct(d.rate) + ' %</dd></div>';
+    h += '<div><dt>Zahlungsplan</dt><dd>' + (n === 1 ? 'Einmalig' : n + ' &times; ' + usd(base) + (lastAmt !== base ? ' (letzte ' + usd(lastAmt) + ')' : '')) + '</dd></div>';
+    h += '<div><dt>' + (isAct ? 'Letzte Rate' : 'Abgeschlossen') + '</dt><dd>' + fmtDate(isAct ? d.due : (d.closedAt || d.due)) + '</dd></div>';
+    h += '<div><dt>Rückzahlung gesamt</dt><dd>' + usd(d.repay) + '</dd></div>';
+    if (isAct) {
+      h += '<div><dt>Gezahlt</dt><dd>' + usd(inf.paid) + '</dd></div>';
+      h += '<div class="key"><dt>Noch offen</dt><dd>' + usd(inf.open) + '</dd></div>';
+    } else {
+      var res = inf.paid - d.fin;
+      h += '<div class="key"><dt>Gezahlt</dt><dd>' + usd(inf.paid) + '</dd></div>';
+      h += res >= 0 ? '<div class="gain"><dt>Gewinn</dt><dd>+ ' + usd(res) + '</dd></div>' : '<div class="loss"><dt>Verlust</dt><dd>&minus; ' + usd(-res) + '</dd></div>';
+    }
+    h += '</dl>';
+    if (isAct) {
+      var frac = d.repay > 0 ? clamp(inf.paid / d.repay, 0, 1) : 1;
+      var pc = Math.round(frac * 100);
+      h += '<div class="when"><div class="paybar' + (si.late ? ' late' : '') + '"><span style="width:' + pc + '%"></span></div><div class="paylabel' + (si.late ? ' late' : '') + '"><span>' + nextText(inf) + '</span><span>' + pc + ' % bezahlt</span></div></div>';
+    }
+    if (d.note) h += '<div class="note">' + esc(d.note) + '</div>';
+    if (view.open[id]) h += detailHTML(l, inf, isAct);
+
+    var e = view.edit && view.edit.id === id ? view.edit : null;
+    var p = view.pay && view.pay.id === id ? view.pay : null;
+    if (e) {
+      h += '<div class="editbox">';
+      h += '<div class="field"><label>Name</label><input class="txt" data-f="name" value="' + esc(e.name) + '"></div>';
+      h += '<div class="field"><label>Telefonnummer</label><input class="txt" data-f="phone" value="' + esc(e.phone) + '"></div>';
+      h += '<div class="field wide"><label>Notiz</label><input class="txt" data-f="note" value="' + esc(e.note) + '"></div>';
+      h += '<div class="actions"><button class="btn" type="button" data-act="photo" data-id="' + id + '">Foto ändern</button><button class="btn primary" type="button" data-act="saveedit" data-id="' + id + '">Speichern</button><button class="btn" type="button" data-act="canceledit">Abbrechen</button></div>';
+      h += '</div>';
+    } else if (p) {
+      h += '<div class="editbox">';
+      h += '<div class="field"><label>Betrag</label><div class="inwrap"><input data-pf="amount" type="text" inputmode="numeric" value="' + money(p.amount) + '"><span class="unit">$</span></div></div>';
+      h += '<div class="field"><label>Datum</label><input class="txt" type="date" data-pf="date" value="' + esc(p.date) + '"></div>';
+      h += '<div class="chips wide"><button class="chip" type="button" data-act="payfill" data-v="next" data-id="' + id + '">Nächste Rate</button><button class="chip" type="button" data-act="payfill" data-v="rest" data-id="' + id + '">Gesamter Rest (' + usd(inf.open) + ')</button></div>';
+      h += '<div class="actions"><button class="btn primary" type="button" data-act="savepay" data-id="' + id + '">Zahlung eintragen</button><button class="btn" type="button" data-act="cancelpay">Abbrechen</button></div>';
+      h += '</div>';
+    } else if (view.confirmDel === id) {
+      h += '<div class="actions"><span>Diesen Eintrag löschen?</span><button class="btn danger" type="button" data-act="del" data-id="' + id + '">Löschen</button><button class="btn" type="button" data-act="canceldel">Abbrechen</button></div>';
+    } else {
+      h += '<div class="actions">';
+      if (isAct) h += '<button class="btn primary" type="button" data-act="pay" data-id="' + id + '">Zahlung</button><button class="btn" type="button" data-act="allpaid" data-id="' + id + '">Alles bezahlt</button>';
+      else h += '<button class="btn" type="button" data-act="reopen" data-id="' + id + '">Wieder aktivieren</button>';
+      h += '<button class="btn" type="button" data-act="toggle" data-id="' + id + '">' + (view.open[id] ? 'Plan ausblenden' : 'Plan und Zahlungen') + '</button>';
+      h += '<button class="btn" type="button" data-act="edit" data-id="' + id + '">Bearbeiten</button>';
+      if (isAct) h += '<button class="btn danger" type="button" data-act="defaulted" data-id="' + id + '">Ausgefallen</button>';
+      h += '<button class="btn" type="button" data-act="askdel" data-id="' + id + '">Löschen</button></div>';
+    }
+    h += '</article>';
+    return h;
+  }
+
+  function matches(d, q) {
+    if (!q) return true;
+    q = q.trim().toLowerCase();
+    return String(d.name || '').toLowerCase().indexOf(q) >= 0 || String(d.phone || '').toLowerCase().indexOf(q) >= 0;
+  }
+  function sumBy(arr, f) { return arr.reduce(function (a, x) { return a + (Number(f(x)) || 0); }, 0); }
+  function stripHTML(items) {
+    return items.map(function (x) {
+      return '<div><span class="lbl">' + x[0] + '</span><span class="num ' + (x[3] || '') + '">' + x[1] + '</span><span class="cap">' + x[2] + '</span></div>';
+    }).join('');
+  }
+
+  function renderLists() {
+    var act = loans.filter(function (l) { return l.d.status === 'active'; });
+    var arc = loans.filter(function (l) { return l.d.status !== 'active'; });
+    $('cnt-act').textContent = act.length ? String(act.length) : '';
+    $('cnt-arc').textContent = arc.length ? String(arc.length) : '';
+    renderNames();
+
+    var ai = act.map(function (l) { return { l: l, inf: info(l.d) }; });
+    var lateList = ai.filter(function (x) { return x.inf.open > 0 && x.inf.behind > 0; });
+    var behindSum = sumBy(lateList, function (x) { return x.inf.behind; });
+    $('strip-act').innerHTML = stripHTML([
+      ['Aktive Kredite', String(act.length), lateList.length ? lateList.length + ' im Rückstand' : 'keiner im Rückstand'],
+      ['Ausgeliehen', usd(sumBy(act, function (l) { return l.d.fin; })), 'nach Abzug Anzahlung'],
+      ['Noch offen', usd(sumBy(ai, function (x) { return x.inf.open; })), 'von ' + usd(sumBy(act, function (l) { return l.d.repay; }))],
+      ['Rückstand', usd(behindSum), 'fällig, unbezahlt', behindSum > 0 ? 'neg' : '']
+    ]);
+
+    var al = $('alert');
+    if (lateList.length) {
+      al.hidden = false;
+      al.textContent = lateList.length + ' Kredit(e) im Rückstand: ' + usd(behindSum);
+    } else al.hidden = true;
+
+    var q = $('q-act').value, sort = $('sort-act').value;
+    var shown = ai.filter(function (x) { return matches(x.l.d, q); });
+    shown.sort(function (a, b) {
+      if (sort === 'amount') return b.inf.open - a.inf.open;
+      if (sort === 'name') return String(a.l.d.name).localeCompare(String(b.l.d.name), 'de');
+      return (a.inf.next ? a.inf.next.due : a.l.d.due).localeCompare(b.inf.next ? b.inf.next.due : b.l.d.due);
+    });
+
+    $('list-act').innerHTML = shown.length ? shown.map(function (x) { return loanHTML(x.l); }).join('') : '<div class="empty"><strong>Keine Einträge</strong><p>Erstelle einen Kredit im Reiter "Neuer Kredit".</p></div>';
+
+    var gain = sumBy(arc, function (l) { return Math.max(0, paidOf(l.d) - l.d.fin); });
+    var loss = sumBy(arc, function (l) { return Math.max(0, l.d.fin - paidOf(l.d)); });
+    var net = gain - loss;
+    $('strip-arc').innerHTML = stripHTML([
+      ['Abgeschlossen', String(arc.length), 'Einträge'],
+      ['Zinseinnahmen', usd(gain), 'Gewinn', 'pos'],
+      ['Verluste', usd(loss), 'Ausfälle', loss > 0 ? 'neg' : ''],
+      ['Ergebnis', (net < 0 ? '− ' : '') + usd(Math.abs(net)), 'Netto', net < 0 ? 'neg' : 'pos']
+    ]);
+
+    var qa = $('q-arc').value;
+    var ashown = arc.filter(function (l) { return (view.arcFilter === 'all' || l.d.status === view.arcFilter) && matches(l.d, qa); });
+    $('list-arc').innerHTML = ashown.length ? ashown.map(loanHTML).join('') : '<div class="empty"><strong>Das Archiv ist leer</strong></div>';
+  }
+
+  $('q-act').addEventListener('input', renderLists);
+  $('sort-act').addEventListener('change', renderLists);
+  $('q-arc').addEventListener('input', renderLists);
+  $('arcfilter').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-f]'); if (!b) return;
+    view.arcFilter = b.dataset.f;
+    Array.prototype.forEach.call($('arcfilter').querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    renderLists();
+  });
+
+  var photoTarget = null;
+  function findLoan(id) { return loans.filter(function (x) { return x.id === id; })[0]; }
+  async function upd(id, data, okMsg) {
+    var l = findLoan(id);
+    if (!l) return;
+    var updatedData = Object.assign({}, l.d, data);
+    var ok = await StorageAdapter.updateLoan(id, updatedData);
+    if (ok) {
+      l.d = updatedData;
+      if (okMsg) toast(okMsg);
+      renderLists();
+    }
+  }
+
+  async function onListClick(e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.dataset.act, id = b.dataset.id;
+    if (act === 'zoom') {
+      $('lbimg').src = b.dataset.src;
+      $('lb').hidden = false;
+      return;
+    }
+    var l = findLoan(id);
+    var inf = l ? info(l.d) : null;
+    if (act === 'allpaid' && l) {
+      var arr = (l.d.payments || []).slice();
+      if (inf.open > 0) arr.push({ date: todayStr(), amount: inf.open });
+      upd(id, { payments: arr, status: 'repaid', closedAt: todayStr() }, 'Als bezahlt archiviert.');
+    } else if (act === 'defaulted') {
+      upd(id, { status: 'defaulted', closedAt: todayStr() }, 'Als Ausfall archiviert.');
+    } else if (act === 'reopen') {
+      upd(id, { status: 'active', closedAt: null }, 'Wieder aktiv.');
+    } else if (act === 'toggle') {
+      view.open[id] = !view.open[id];
+      renderLists();
+    } else if (act === 'pay' && l) {
+      view.pay = { id: id, amount: inf.next ? inf.next.amt : inf.open, date: todayStr() };
+      view.edit = null; view.confirmDel = null; renderLists();
+    } else if (act === 'payfill' && view.pay && inf) {
+      view.pay.amount = b.dataset.v === 'rest' ? inf.open : (inf.next ? inf.next.amt : inf.open);
+      renderLists();
+    } else if (act === 'cancelpay') {
+      view.pay = null; renderLists();
+    } else if (act === 'savepay' && l && view.pay) {
+      var amt = Math.round(Number(view.pay.amount) || 0);
+      if (amt <= 0) { toast('Betrag eingeben'); return; }
+      var arr2 = (l.d.payments || []).concat([{ date: view.pay.date, amount: amt }]);
+      var full = inf.paid + amt >= l.d.repay;
+      await upd(id, { payments: arr2, status: full ? 'repaid' : 'active', closedAt: full ? view.pay.date : null }, 'Zahlung gebucht.');
+      view.pay = null;
+      renderLists();
+    } else if (act === 'delpay' && l) {
+      var idx = Number(b.dataset.i);
+      var arr3 = (l.d.payments || []).slice();
+      if (idx >= 0 && idx < arr3.length) {
+        arr3.splice(idx, 1);
+        upd(id, { payments: arr3 }, 'Zahlung entfernt.');
+      }
+    } else if (act === 'askdel') {
+      view.confirmDel = id; renderLists();
+    } else if (act === 'canceldel') {
+      view.confirmDel = null; renderLists();
+    } else if (act === 'del') {
+      var ok = await StorageAdapter.deleteLoan(id);
+      if (ok) {
+        loans = loans.filter(function (x) { return x.id !== id; });
+        view.confirmDel = null;
+        renderLists();
+        toast('Gelöscht.');
+      }
+    } else if (act === 'edit' && l) {
+      view.edit = { id: id, name: l.d.name, phone: l.d.phone, note: l.d.note };
+      view.pay = null; view.confirmDel = null; renderLists();
+    } else if (act === 'canceledit') {
+      view.edit = null; renderLists();
+    } else if (act === 'saveedit') {
+      if (!view.edit.name.trim()) return;
+      await upd(id, { name: view.edit.name.trim(), phone: view.edit.phone.trim(), note: view.edit.note.trim() }, 'Gespeichert.');
+      view.edit = null;
+      renderLists();
+    } else if (act === 'photo') {
+      photoTarget = id; $('editphoto').click();
+    }
+  }
+
+  $('list-act').addEventListener('click', onListClick);
+  $('list-arc').addEventListener('click', onListClick);
+
+  $('list-act').addEventListener('input', function (e) {
+    var t = e.target;
+    var f = t.getAttribute('data-f'), pf = t.getAttribute('data-pf');
+    if (f && view.edit) view.edit[f] = t.value;
+    if (pf && view.pay) view.pay[pf] = pf === 'amount' ? parseMoney(t.value) : t.value;
+  });
+
+  $('editphoto').addEventListener('change', function () {
+    var f = $('editphoto').files && $('editphoto').files[0];
+    $('editphoto').value = '';
+    if (!f || !photoTarget) return;
+    shrinkToBase64(f).then(function (b64) {
+      upd(photoTarget, { photo: b64 }, 'Foto aktualisiert.');
+    });
+  });
+
+  $('lb').addEventListener('click', function () {
+    $('lb').hidden = true;
+    $('lbimg').removeAttribute('src');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      $('lb').hidden = true;
+      $('lbimg').removeAttribute('src');
+    }
+  });
+
+  var VIEWS = ['uebersicht', 'neu', 'archiv'];
+  function route() {
+    var h = (location.hash || '').replace('#', '');
+    if (VIEWS.indexOf(h) < 0) h = 'uebersicht';
+    VIEWS.forEach(function (v) {
+      var el = $('v-' + v);
+      if (el) el.hidden = (v !== h);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.nav a'), function (a) {
+      if (a.dataset.v === h) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    window.scrollTo(0, 0);
+    if (h === 'uebersicht' || h === 'archiv') renderLists();
+  }
+  window.addEventListener('hashchange', route);
+
+  async function init() {
+    if (StorageAdapter.isCloud()) {
+      $('storage-status').textContent = 'Cloud (DB)';
+      $('storage-status').style.color = 'var(--ok)';
+    } else {
+      $('storage-status').textContent = 'Lokal (Browser)';
+    }
+    loans = await StorageAdapter.getLoans();
+    renderCalc();
+    renderPrev();
+    route();
+    renderLists();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
